@@ -1,18 +1,23 @@
+import { Spinner } from 'react-bootstrap'
 import Page from '../../components/Page'
 import Timeline from '../../components/Timeline'
-import Entry from '../../model/entry/Entry'
+import useAsync from '../../hooks/useAsync'
+import { MockEntryRepository } from '../../infrastructure/entry/MockEntryRepository'
 
-const MOCK_ENTRIES = [
-  new Entry(
-    "a88274af543e662d7db43453a4e63c3bfa410be46b69f4660f8c73d32435ddb7",
-    new Date("2022-04-28T23:33:00Z"),
-    "This will be the first entry in Plaza ever. 🐦"),
-]
+const ENTRY_REPOSITORY = new MockEntryRepository()
+
+function Content() {
+  const { result, error, done } = useAsync(ENTRY_REPOSITORY.find, true)
+
+  if (error) return <h3>An error ocurred!</h3>
+  if (done) return <Timeline entries={result!} />
+  return <Spinner animation="grow" variant="primary" />
+}
 
 function TimelinePage() {
   return (
     <Page>
-      <Timeline entries={MOCK_ENTRIES} />
+      <Content />
     </Page>
   )
 }

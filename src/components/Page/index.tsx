@@ -1,4 +1,5 @@
-import { Col, Container, Row } from 'react-bootstrap'
+import { Row } from 'react-bootstrap'
+import { Col, Container } from 'react-bootstrap'
 
 interface Props {
   children?: JSX.Element
@@ -9,7 +10,7 @@ function Page({ children }: Props) {
     <Container fluid>
       <Row>
         <Col></Col>
-        <Col>{children}</Col>
+        <Col xs={7} s={6} md={5} lg={4}>{children}</Col>
         <Col></Col>
       </Row>
     </Container>

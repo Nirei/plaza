@@ -1,5 +1,5 @@
 import { Stack } from 'react-bootstrap'
-import Entry from '../../model/entry/Entry'
+import Entry from '../../domain/entry/Entry'
 import EntryCard from '../EntryCard'
 import For from '../For'
 
@@ -9,7 +9,7 @@ interface Props {
 
 function Timeline({ entries }: Props) {
   return (
-    <Stack>
+    <Stack className="border border-light" direction="vertical">
       <For
         each={entries}
         render={(entry) => <EntryCard entry={entry} key={entry.uri} />}

@@ -4,19 +4,24 @@ import * as EntryContent from './EntryContent'
 import * as EntryEmbedment from './EntryEmbedment'
 import EntryReference from './EntryReference'
 
-const ENTRY_FILE_PREFIX = "entry-"
+const ENTRY_FILE_PREFIX = 'entry-'
 
 export default class Entry {
+  /** Entry's author node */
   readonly node: NodeReference.Type
+  /** Entry's publishing date */
   readonly date: Date
+  /** Entry's textual content */
   readonly content?: EntryContent.Type
-  // The embedded content of the entry. This will be an URI linking to a media or website. Not mandatory.
+  /** The embedded content of the entry. This will be an URI linking to a media or website. Not mandatory. */
   readonly embed?: EntryEmbedment.Type
-  // Pointer to the message this entry is replying to. Not mandatory.
+  /** Pointer to the message this entry is replying to. Not mandatory. */
   readonly reply?: EntryReference
-  // Pointer to the entry this entry is reblogging.
-  // If reblog is specified but no content is specified, this will be a normal reblog.
-  // If both reblog and textual content are specified, this will be a quoted reblog.
+  /**
+   * Pointer to the entry this entry is reblogging.
+   * If reblog is specified but no content is specified, this will be a normal reblog.
+   * If both reblog and textual content are specified, this will be a quoted reblog.
+   */
   readonly reblog?: EntryReference
 
   constructor(
