@@ -1,5 +1,6 @@
 import { Row } from 'react-bootstrap'
 import { Col, Container } from 'react-bootstrap'
+import SideMenu from '../SideMenu'
 
 interface Props {
   children?: JSX.Element
@@ -7,10 +8,14 @@ interface Props {
 
 function Page({ children }: Props) {
   return (
-    <Container fluid>
+    <Container>
       <Row>
-        <Col></Col>
-        <Col xs={7} s={6} md={5} lg={4}>{children}</Col>
+        <Col xs={3}>
+          <SideMenu />
+        </Col>
+        <Col xs={6}>
+          {children}
+        </Col>
         <Col></Col>
       </Row>
     </Container>
