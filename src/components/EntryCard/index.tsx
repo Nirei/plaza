@@ -1,17 +1,32 @@
+import { useCallback } from 'react'
 import { faComment, faHeart } from '@fortawesome/free-regular-svg-icons'
 import {
   faArrowUpFromBracket,
   faRetweet,
 } from '@fortawesome/free-solid-svg-icons'
-import { Col, Row } from 'react-bootstrap'
+import { Col, Row, Spinner } from 'react-bootstrap'
 import { humanRelativeTime } from '../../domain/common/Date'
 import Entry from '../../domain/entry/Entry'
 import Avatar from '../Avatar'
 import InteractionButton from '../InteractionButton'
+import useAsync from '../../hooks/useAsync'
+import { MockNodeRepository } from '../../infrastructure/node/MockNodeRepository'
+import Node from '../../domain/node/Node'
 
-function NodeName({ id }: { id: string }) {
+const NODE_REPOSITORY = new MockNodeRepository()
+
+function NodeName({ name }: { name: string }) {
+  return <span className="fw-bold mb-1 me-1">{name}</span>
+}
+
+function NodeHandle({ handle, id }: { handle: string; id: string }) {
   const short = id.substring(0, 6)
-  return <span className="fw-bold text-uppercase mb-1 me-1">{short}</span>
+  return (
+    <>
+      <span className="mb-1 text-secondary">{`@${handle}`}</span>
+      <span className="mb-1 me-1 fs-6 font-monospace text-uppercase text-secondary">{`#${short}`}</span>
+    </>
+  )
 }
 
 function RelativeTime({ time }: { time: Date }) {
@@ -46,20 +61,22 @@ function ButtonRow() {
   )
 }
 
-interface Props {
+interface ContentProps {
   entry: Entry
+  node: Node
 }
 
-function EntryCard({ entry }: Props) {
+function Card({ entry, node }: ContentProps) {
   return (
-    <Row className="border-top border-light px-3 py-2 m-0">
+    <>
       <Col className="p-0" xs={1}>
-        <Avatar node={entry.node} />
+        <Avatar uri={node.avatar_url} />
       </Col>
       <Col>
         <Row>
           <Col>
-            <NodeName id={entry.node} />
+            <NodeName name={node.username} />
+            <NodeHandle handle={node.handle} id={node.id} />
             <RelativeTime time={entry.date} />
           </Col>
         </Row>
@@ -71,6 +88,31 @@ function EntryCard({ entry }: Props) {
           <ButtonRow />
         </Row>
       </Col>
+    </>
+  )
+}
+
+interface Props {
+  entry: Entry
+}
+
+function Content({ entry }: Props) {
+  const findNode = useCallback(
+    () => NODE_REPOSITORY.fetch(entry.node),
+    [entry.node],
+  )
+  const { result, done, error } = useAsync(findNode, true)
+
+  if (error) return <h3>FIXME</h3>
+  if (!done) return <Spinner animation="grow" variant="secondary" />
+
+  return <Card entry={entry} node={result!} />
+}
+
+function EntryCard({ entry }: Props) {
+  return (
+    <Row className="border-top border-light px-3 py-2 m-0">
+      <Content entry={entry} />
     </Row>
   )
 }

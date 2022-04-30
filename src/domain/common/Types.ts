@@ -1,5 +1,9 @@
 import ValidationError from '../exception/ValidationError'
 
+export function isNotEmpty<Value>(value: Value | null | undefined): value is Value {
+  return value !== null && value !== undefined
+}
+
 export function parsePositiveNumber(value: number) {
   if (value >= 0) {
     return value

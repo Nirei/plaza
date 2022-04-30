@@ -9,4 +9,5 @@ export interface FindQuery {
 
 export default interface EntryRepository {
   find(query: FindQuery): Promise<Entry[]>
+  create(entry: Entry): Promise<void>
 }

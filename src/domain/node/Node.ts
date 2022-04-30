@@ -8,6 +8,17 @@ import * as Uri from '../common/Uri'
 const DEFAULT_AVATAR = ''
 const DEFAULT_BACKGROUND = ''
 
+interface NodeRawData {
+  id: string
+  username: string
+  handle: string
+  bio: string
+  location?: string
+  birth?: Date
+  avatar?: string
+  background?: string
+}
+
 export default class Node {
   /** Nodes public key ID */
   readonly id: NodeReference.Type
@@ -26,16 +37,16 @@ export default class Node {
   /** Profile background URI */
   readonly background?: Uri.Type
 
-  constructor(
-    id: string,
-    username: string,
-    handle: string,
-    bio: string,
-    location?: string,
-    birth?: Date,
-    avatar?: string,
-    background?: string,
-  ) {
+  constructor({
+    id,
+    username,
+    handle,
+    bio,
+    location,
+    birth,
+    avatar,
+    background,
+  }: NodeRawData) {
     this.id = NodeReference.parse(id)
     this.username = Username.parse(username)
     this.handle = Handle.parse(handle)
@@ -52,7 +63,9 @@ export default class Node {
    * Accepted formats are JPEG, GIF, PNG and WEBP.
    */
   get avatar_url() {
-    return this.avatar ? `hyper://${this.id}/${this.avatar}` : DEFAULT_AVATAR
+    return Uri.parse(
+      this.avatar ? `hyper://${this.id}/${this.avatar}` : DEFAULT_AVATAR,
+    )
   }
 
   /**
@@ -61,6 +74,8 @@ export default class Node {
    * Accepted formats are JPEG, GIF, PNG and WEBP.
    */
   get background_url() {
-    return this.background ? `hyper://${this.id}/${this.background}` : DEFAULT_BACKGROUND
+    return this.background
+      ? `hyper://${this.id}/${this.background}`
+      : DEFAULT_BACKGROUND
   }
 }

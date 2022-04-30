@@ -6,6 +6,22 @@ export interface FindQuery {
 }
 
 export default interface NodeRepository {
+  /**
+   * Find nodes from your known nodes.
+   * @param query the data to use for the search
+   */
   find(query: FindQuery): Promise<Node[]>
-  fetch(id: NodeReference.Type): Promise<Node>
+  /**
+   * Find a known node by id
+   * @param id the id of the target node
+   */
+  fetch(id: NodeReference.Type): Promise<Node | null>
+  /**
+   * Get the list of node IDs that a certain known node follows
+   * @param id the id of the target node
+   */
+  follows(
+    id: NodeReference.Type,
+    options: { page: number },
+  ): Promise<NodeReference.Type[]>
 }
