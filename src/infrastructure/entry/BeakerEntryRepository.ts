@@ -6,7 +6,7 @@ export class BeakerEntryRepository implements EntryRepository {
 
   private readonly client = new Client()
 
-  find(query: FindQuery) {
+  find(_query?: FindQuery) {
     // FIXME: Implement query
     return this.client.entries(Client.LOCAL)
   }

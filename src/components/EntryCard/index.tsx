@@ -10,10 +10,10 @@ import Entry from '../../domain/entry/Entry'
 import Avatar from '../Avatar'
 import InteractionButton from '../InteractionButton'
 import useAsync from '../../hooks/useAsync'
-import { MockNodeRepository } from '../../infrastructure/node/MockNodeRepository'
+import { BeakerNodeRepository } from '../../infrastructure/node/BeakerNodeRepository'
 import Node from '../../domain/node/Node'
 
-const NODE_REPOSITORY = new MockNodeRepository()
+const NODE_REPOSITORY = new BeakerNodeRepository()
 
 function NodeName({ name }: { name: string }) {
   return <span className="fw-bold mb-1 me-1">{name}</span>
