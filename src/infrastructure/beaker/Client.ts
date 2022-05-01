@@ -18,7 +18,7 @@ const ENTRY_FILE_QUERY = `/${BASE_PATH}/${ENTRY_FILE_PREFIX}-*.yml`
 
 const MAX_ROTATING_FILE_SIZE = 2 * 1024 * 1024
 
-const ENTRY_FILE_PATTERN = /\/?(?:.+\/)+entry-(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d.\d\d\dZ)\.yml/
+const ENTRY_FILE_PATTERN = /\/?(?:.+\/)+entry-(-?\d+)\.yml/
 
 const PARSE_NODE_REFS = (nodes: string[]) => nodes.map(NodeReference.parse)
 const PARSE_ENTRY_REFS = (entries: EntryReference.Raw[]) =>
@@ -56,7 +56,7 @@ export default class Client {
     const drive = Client.hyperdriveApi.drive(ref.node)
     const entryFile = await this.fetchFile(
       drive,
-      `/${BASE_PATH}/${ENTRY_FILE_PREFIX}-${ref.date.toISOString()}.yml`,
+      `/${BASE_PATH}/${ENTRY_FILE_PREFIX}-${ref.date.getTime()}.yml`,
     )
     const entry = this.parseYaml<EntryRawData>(entryFile)
     return this.parseEntry(ref.node, ref.date, entry)
