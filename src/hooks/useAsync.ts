@@ -16,6 +16,7 @@ export default function useAsync<Output>(
     try {
       setResult(await callback())
     } catch (e) {
+      console.error(e)
       setError(e as Error)
     }
     setLoading(false)

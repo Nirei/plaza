@@ -44,12 +44,8 @@ export default class Entry {
     this.validate()
   }
 
-  public get id() {
-    return `${this.date.toISOString()}`
-  }
-
   public get filename() {
-    return `${ENTRY_FILE_PREFIX}${this.id}.yml`
+    return `${ENTRY_FILE_PREFIX}${this.date.toISOString()}.yml`
   }
 
   public get uri() {

@@ -5,9 +5,10 @@ import useAsync from '../../hooks/useAsync'
 import { BeakerEntryRepository } from '../../infrastructure/entry/BeakerEntryRepository'
 
 const ENTRY_REPOSITORY = new BeakerEntryRepository()
+const FIND_CALLBACK = () => ENTRY_REPOSITORY.find()
 
 function Content() {
-  const { result, error, done } = useAsync(ENTRY_REPOSITORY.find, true)
+  const { result, error, done } = useAsync(FIND_CALLBACK, true)
 
   if (error) return (
     <>

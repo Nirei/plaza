@@ -1,10 +1,10 @@
 import YAML from 'js-yaml'
-import { isNotEmpty } from '../../domain/common/Types'
 import Entry from '../../domain/entry/Entry'
 import * as EntryReference from '../../domain/entry/EntryReference'
 import * as NodeReference from '../../domain/node/NodeReference'
 import Node from '../../domain/node/Node'
 import { Hyperdrive } from '../../lib/beaker'
+import { isNotEmpty } from '../../domain/common/Types'
 
 const BASE_PATH = 'blog'
 const PROFILE_FILE_NAME = 'profile'
@@ -18,7 +18,11 @@ const ENTRY_FILE_QUERY = `/${BASE_PATH}/${ENTRY_FILE_PREFIX}-*.yml`
 
 const MAX_ROTATING_FILE_SIZE = 2 * 1024 * 1024
 
-const ENTRY_FILE_PATTERN = /\/?(?:.+\/)+entry-(.+)/
+const ENTRY_FILE_PATTERN = /\/?(?:.+\/)+entry-(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d.\d\d\dZ)\.yml/
+
+const PARSE_NODE_REFS = (nodes: string[]) => nodes.map(NodeReference.parse)
+const PARSE_ENTRY_REFS = (entries: EntryReference.Raw[]) =>
+  entries.map(EntryReference.parse)
 
 interface ProfileRawData {
   username: string
@@ -88,11 +92,11 @@ export default class Client {
   }
 
   async follows(node: NodeReference.Type) {
-    return this.fetchFiles(node, FOLLOW_FILE_QUERY, NodeReference.parse)
+    return this.fetchFiles(node, FOLLOW_FILE_QUERY, PARSE_NODE_REFS)
   }
 
   async likes(node: NodeReference.Type) {
-    return this.fetchFiles(node, LIKE_FILE_QUERY, EntryReference.parse)
+    return this.fetchFiles(node, LIKE_FILE_QUERY, PARSE_ENTRY_REFS)
   }
 
   private async fetchFiles<Output, Content>(
@@ -100,36 +104,29 @@ export default class Client {
     fileQuery: string,
     parse: (element: Content, path: string) => Output,
   ) {
-    // Beware doubly nested functions
     const processFile = async ([path, promise]: readonly [
       string,
       Promise<string | null>,
     ]) => {
-      // Here comes the double nesting...!
-      const processElement = (element: Content) => {
-        try {
-          return parse(element, path)
-        } catch (error) {
-          console.warn('Unable to parse element', element, error)
-          return null
-        }
+      const content = this.parseYaml<Content>(await promise)
+      if (content === null) return null
+      try {
+        return parse(content, path)
+      } catch (error) {
+        console.warn('Unable to parse content', content, error)
+        return null
       }
-
-      const content = this.parseYaml<Content[]>(await promise)
-      if (!isNotEmpty(content)) return []
-      return content.map(processElement).filter(isNotEmpty)
     }
-    // Sorry... :(
 
     const drive = Client.hyperdriveApi.drive(node)
     const fetchedFiles = await this.queryFiles(drive, fileQuery)
     const processedOutput = await Promise.all(fetchedFiles.map(processFile))
-    return processedOutput.flat()
+    return processedOutput.filter(isNotEmpty).flat()
   }
 
   private parseDateFromPath(path: string) {
     const dateString = path.match(ENTRY_FILE_PATTERN)?.pop()!
-    return new Date(dateString)
+    return new Date(Date.parse(dateString))
   }
 
   private async queryFiles(drive: Hyperdrive.Hyperdrive, fileQuery: string) {
