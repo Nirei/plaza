@@ -1,10 +1,11 @@
 import YAML from 'js-yaml'
+import { isNotEmpty } from '../../domain/common/Types'
 import Entry from '../../domain/entry/Entry'
 import * as EntryReference from '../../domain/entry/EntryReference'
-import * as NodeReference from '../../domain/node/NodeReference'
+import ValidationError from '../../domain/exception/ValidationError'
 import Node from '../../domain/node/Node'
+import * as NodeReference from '../../domain/node/NodeReference'
 import { Hyperdrive } from '../../lib/beaker'
-import { isNotEmpty } from '../../domain/common/Types'
 
 const BASE_PATH = 'blog'
 const PROFILE_FILE_NAME = 'profile'
@@ -52,11 +53,27 @@ export default class Client {
 
   static readonly LOCAL = NodeReference.parse(Client.host)
 
+  nodeInfo(node: NodeReference.Type) {
+    const drive = Client.hyperdriveApi.drive(node)
+    return drive.getInfo()
+  } 
+
+  createEntry(entry: Entry) {
+    const drive = Client.hyperdriveApi.drive(Client.LOCAL)
+    const content = YAML.dump(entry)
+    const path = this.entryFilePath(entry.date.getTime())
+    return drive.writeFile(path, content, {
+      metadata: {},
+      encoding: 'utf8',
+      timeout: DEFAULT_OP_TIMEOUT,
+    })
+  }
+
   async resolveEntry(ref: EntryReference.Type) {
     const drive = Client.hyperdriveApi.drive(ref.node)
     const entryFile = await this.fetchFile(
       drive,
-      `/${BASE_PATH}/${ENTRY_FILE_PREFIX}-${ref.date.getTime()}.yml`,
+      this.entryFilePath(ref.date.getTime()),
     )
     const entry = this.parseYaml<EntryRawData>(entryFile)
     return this.parseEntry(ref.node, ref.date, entry)
@@ -77,7 +94,7 @@ export default class Client {
     })
   }
 
-  async entries(node: NodeReference.Type) {
+  entries(node: NodeReference.Type) {
     return this.fetchFiles(
       node,
       ENTRY_FILE_QUERY,
@@ -91,11 +108,11 @@ export default class Client {
     )
   }
 
-  async follows(node: NodeReference.Type) {
+  follows(node: NodeReference.Type) {
     return this.fetchFiles(node, FOLLOW_FILE_QUERY, PARSE_NODE_REFS)
   }
 
-  async likes(node: NodeReference.Type) {
+  likes(node: NodeReference.Type) {
     return this.fetchFiles(node, LIKE_FILE_QUERY, PARSE_ENTRY_REFS)
   }
 
@@ -126,7 +143,16 @@ export default class Client {
 
   private parseDateFromPath(path: string) {
     const dateString = path.match(ENTRY_FILE_PATTERN)?.pop()!
-    return new Date(Date.parse(dateString))
+    const dateInt = parseInt(dateString)
+    if (isNaN(dateInt)) {
+      throw new ValidationError(`Invalid date ${dateString}`)
+    }
+    const date = new Date(dateInt)
+    return date
+  }
+
+  private entryFilePath(timestamp: number) {
+    return `/${BASE_PATH}/${ENTRY_FILE_PREFIX}-${timestamp}.yml`
   }
 
   private async queryFiles(drive: Hyperdrive.Hyperdrive, fileQuery: string) {
@@ -141,7 +167,7 @@ export default class Client {
       .map((file) => [file.path, this.fetchFile(drive, file.path)] as const)
   }
 
-  private async fetchFile(drive: Hyperdrive.Hyperdrive, path: string) {
+  private fetchFile(drive: Hyperdrive.Hyperdrive, path: string) {
     try {
       return drive.readFile(path, {
         encoding: 'utf8',
@@ -149,7 +175,7 @@ export default class Client {
       })
     } catch (error) {
       console.warn('Unable to retrieve file', path, error)
-      return null
+      return Promise.resolve(null)
     }
   }
 

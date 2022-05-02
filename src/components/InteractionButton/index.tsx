@@ -8,8 +8,11 @@ interface Props {
 
 function InteractionButton({ icon }: Props) {
   return (
-    <Button className="border-0" variant="outline-secondary">
-      <FontAwesomeIcon icon={icon} />
+    <Button
+      className="p-0 border-0 rounded-circle btn-square justify-content-center align-items-center"
+      variant="outline-secondary"
+    >
+      <FontAwesomeIcon fixedWidth icon={icon} />
     </Button>
   )
 }

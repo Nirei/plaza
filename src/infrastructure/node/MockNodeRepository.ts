@@ -1,6 +1,6 @@
 import Node from '../../domain/node/Node'
-import NodeRepository, { FindQuery } from '../../domain/node/NodeRepository'
 import * as NodeReference from '../../domain/node/NodeReference'
+import NodeRepository, { FindQuery } from '../../domain/node/NodeRepository'
 
 const MOCK_ENTRIES = [
   new Node({
@@ -24,10 +24,13 @@ export class MockNodeRepository implements NodeRepository {
     if (!node) return Promise.resolve(null)
     return Promise.resolve(node)
   }
-  follows(
-    id: NodeReference.Type,
-    options: { page: number },
-  ): never {
+  follows(id: NodeReference.Type, options: { page: number }): never {
+    throw new Error('Method not implemented.')
+  }
+  isOwnNode(): Promise<boolean> {
+    throw new Error('Method not implemented.')
+  }
+  local(): Promise<Node> {
     throw new Error('Method not implemented.')
   }
 }

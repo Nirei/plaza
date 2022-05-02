@@ -24,4 +24,12 @@ export default interface NodeRepository {
     id: NodeReference.Type,
     options: { page: number },
   ): Promise<NodeReference.Type[]>
+  /**
+   * @returns true if the local node is writable to the user, false otherwise.
+   */
+  isOwnNode(): Promise<boolean>
+  /**
+   * Returns the local node.
+   */
+  local(): Promise<Node>
 }

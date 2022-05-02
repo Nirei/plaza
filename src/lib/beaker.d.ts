@@ -27,6 +27,28 @@ namespace Hyperdrive {
       opts?: ReadDirOpts,
     ): Promise<(string | { name: string; stat: Stat })[]>
     query(query: Query): Promise<Answer[]>
+    diff(
+      url: string,
+      other: number | string | Hyperdrive,
+      prefix?,
+      opts?: DiffOptions,
+    ): Promise<Array<Diff>>
+    configure(
+      url: string,
+      settings: Settings,
+      opts?: ConfigureOptions,
+    ): Promise<void>
+    writeFile(
+      url: string,
+      data: Uint8Array,
+      opts?: BinaryWriteFileOptions,
+    ): Promise<void>
+    writeFile(
+      url: string,
+      data: string,
+      opts?: EncodedWriteFileOptions,
+    ): Promise<void>
+    mkdir(url: string, opts?: MkdirOptions): Promise<void>
   }
 
   export interface Hyperdrive {
@@ -40,6 +62,24 @@ namespace Hyperdrive {
       opts?: ReadDirOpts,
     ): Promise<(string | { name: string; stat: Stat })[]>
     query(query: Query): Promise<Answer[]>
+    diff(
+      url: string,
+      other: number | string | Hyperdrive,
+      prefix?,
+      opts?: DiffOptions,
+    ): Promise<Array<Diff>>
+    configure(settings: Settings, opts: ConfigureOptions): Promise<void>
+    writeFile(
+      url: string,
+      data: Uint8Array,
+      opts?: BinaryWriteFileOptions,
+    ): Promise<void>
+    writeFile(
+      url: string,
+      data: string,
+      opts?: EncodedWriteFileOptions,
+    ): Promise<void>
+    mkdir(url: string, opts?: MkdirOptions): Promise<void>
   }
 
   export interface CreateDriveOptions {
@@ -133,9 +173,46 @@ namespace Hyperdrive {
     }
   }
 
+  export interface DiffOptions {
+    timeout: number
+  }
+
+  export interface Diff {
+    type: DiffType
+    name: string
+    value: any // no idea what can be here, actually
+  }
+
+  export interface Settings {
+    title: string
+    description: string
+  }
+
+  export interface ConfigureOptions {
+    timeout: number
+  }
+
+  interface WriteFileOptions {
+    metadata: { [key: string]: string }
+    timeout: number
+  }
+
+  export interface BinaryWriteFileOptions extends WriteFileOptions {
+    encoding: 'binary'
+  }
+
+  export interface EncodedWriteFileOptions extends WriteFileOptions {
+    encoding: Exclude<FileEncoding, 'binary'>
+  }
+
+  export interface MkdirOptions {
+    timeout: number
+  }
+
   export type EntryType = 'file' | 'directory' | 'mount'
   export type QuerySort = 'name' | 'ctime' | 'mtime'
   export type FileEncoding = 'binary' | 'utf8' | 'hex' | 'json' | 'base64'
+  export type DiffType = 'put' | 'del' | 'mount' | 'unmount'
 }
 
 namespace Markdown {

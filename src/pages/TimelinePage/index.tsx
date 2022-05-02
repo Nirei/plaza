@@ -8,7 +8,7 @@ const ENTRY_REPOSITORY = new BeakerEntryRepository()
 const FIND_CALLBACK = () => ENTRY_REPOSITORY.find()
 
 function Content() {
-  const { result, error, done } = useAsync(FIND_CALLBACK, true)
+  const { result, error, done } = useAsync(FIND_CALLBACK)
 
   if (error) return (
     <>

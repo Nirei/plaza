@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 export default function useAsync<Output>(
   callback: () => Promise<Output>,
-  immediate?: boolean,
+  immediate: boolean = true,
 ) {
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)

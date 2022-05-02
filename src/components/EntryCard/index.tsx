@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
-import { faComment, faHeart } from '@fortawesome/free-regular-svg-icons'
 import {
+  faComment,
+  faHeart,
   faArrowUpFromBracket,
   faRetweet,
 } from '@fortawesome/free-solid-svg-icons'
@@ -12,6 +13,7 @@ import InteractionButton from '../InteractionButton'
 import useAsync from '../../hooks/useAsync'
 import { BeakerNodeRepository } from '../../infrastructure/node/BeakerNodeRepository'
 import Node from '../../domain/node/Node'
+import TimelineRow from '../TimelineRow'
 
 const NODE_REPOSITORY = new BeakerNodeRepository()
 
@@ -101,7 +103,7 @@ function Content({ entry }: Props) {
     () => NODE_REPOSITORY.fetch(entry.node),
     [entry.node],
   )
-  const { result, done, error } = useAsync(findNode, true)
+  const { result, done, error } = useAsync(findNode)
 
   if (error) return <h3>FIXME</h3>
   if (!done) return <Spinner animation="grow" variant="secondary" />
@@ -111,9 +113,9 @@ function Content({ entry }: Props) {
 
 function EntryCard({ entry }: Props) {
   return (
-    <Row className="border-top border-light px-3 py-2 m-0">
+    <TimelineRow>
       <Content entry={entry} />
-    </Row>
+    </TimelineRow>
   )
 }
 
