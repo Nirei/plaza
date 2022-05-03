@@ -15,7 +15,7 @@ export class BeakerEntryRepository implements EntryRepository {
       .flat()
       .filter((entry) => entry.date < new Date())
     return pastEntries.sort(
-      (entry1, entry2) => entry1.date.getTime() - entry2.date.getTime(),
+      (entry1, entry2) => entry2.date.getTime() - entry1.date.getTime(),
     )
   }
 
