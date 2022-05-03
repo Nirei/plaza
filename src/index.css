@@ -25,3 +25,7 @@ code {
 .btn-square:hover {
   opacity: 0.5;
 }
+
+.textarea-autogrow:focus {
+  outline: 0;
+}

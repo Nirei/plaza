@@ -1,5 +1,5 @@
 import Entry from '../../domain/entry/Entry'
-import EntryRepository, { FindQuery } from '../../domain/entry/EntryRepository'
+import EntryRepository, { CreateEntryParameters, FindQuery } from '../../domain/entry/EntryRepository'
 import Client from '../beaker/Client'
 
 export class BeakerEntryRepository implements EntryRepository {
@@ -18,8 +18,23 @@ export class BeakerEntryRepository implements EntryRepository {
       (entry1, entry2) => entry1.date.getTime() - entry2.date.getTime(),
     )
   }
-  
-  create(entry: Entry): Promise<void> {
+
+  create({
+    node,
+    date,
+    content,
+    embed,
+    reblog,
+    reply,
+  }: CreateEntryParameters): Promise<void> {
+    const entry = new Entry({
+      node: node || Client.LOCAL,
+      date: date || new Date(),
+      content: content,
+      embed: embed,
+      reblog: reblog,
+      reply: reply,
+    })
     return this.client.createEntry(entry)
   }
 }

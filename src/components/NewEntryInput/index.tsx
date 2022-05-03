@@ -25,23 +25,26 @@ import {
   faFaceSurprise,
   faFaceTired,
   faImage,
-  IconDefinition
+  IconDefinition,
 } from '@fortawesome/free-regular-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useState } from 'react'
-import { Button, Col, Form, Row, Spinner } from 'react-bootstrap'
-import Entry from '../../domain/entry/Entry'
+import { useCallback, useState } from 'react'
+import { Button, Col, Row, Spinner } from 'react-bootstrap'
+import * as EntryContent from '../../domain/entry/EntryContent'
+import { CreateEntryParameters } from '../../domain/entry/EntryRepository'
 import Node from '../../domain/node/Node'
 import useAsync from '../../hooks/useAsync'
 import { BeakerEntryRepository } from '../../infrastructure/entry/BeakerEntryRepository'
 import { BeakerNodeRepository } from '../../infrastructure/node/BeakerNodeRepository'
+import AutogrowingTextarea from '../AutogrowableTextarea'
 import Avatar from '../Avatar'
 import TimelineRow from '../TimelineRow'
 
 const NODE_REPOSITORY = new BeakerNodeRepository()
 const GET_LOCAL_NODE = () => NODE_REPOSITORY.local()
 const ENTRY_REPOSITORY = new BeakerEntryRepository()
-const SEND_ENTRY = (entry: Entry) => ENTRY_REPOSITORY.create(entry)
+const SEND_ENTRY = (entry: CreateEntryParameters) =>
+  ENTRY_REPOSITORY.create(entry)
 
 const FACE_ARRAY = [
   faFaceAngry,
@@ -68,7 +71,7 @@ const FACE_ARRAY = [
   faFaceGrinWink,
   faFaceGrinWide,
   faFaceGrinTongueWink,
-  faFaceGrinTongueSquint
+  faFaceGrinTongueSquint,
 ]
 const pickRandomFace = () => {
   return FACE_ARRAY[Math.floor(FACE_ARRAY.length * Math.random())]
@@ -76,25 +79,22 @@ const pickRandomFace = () => {
 
 interface InputProps {
   value: string | undefined
-  onChange: (value: string | undefined) => void 
+  onChange: (value: string | undefined) => void
 }
 
-function Input({value, onChange}: InputProps) {
+function Input({ value, onChange }: InputProps) {
   return (
-    <Form.Control
-      className="border-0"
-      size="lg"
-      as="textarea"
-      placeholder="What's going on?"
-      style={{ height: '100px', resize: 'none' }}
+    <AutogrowingTextarea
       value={value}
-      onChange={(event) => onChange(event.target.value)}
+      onChange={onChange}
+      placeholder="What's going on?"
     />
   )
 }
 
 interface EntryOptionButtonProps {
   icon: IconDefinition
+  onClick: () => void
 }
 
 function EntryOptionButton({ icon }: EntryOptionButtonProps) {
@@ -108,29 +108,52 @@ function EntryOptionButton({ icon }: EntryOptionButtonProps) {
   )
 }
 
-function SendButton() {
+interface SendButtonProps {
+  onClick: () => void
+  disabled: boolean
+}
+
+function SendButton({ onClick, disabled }: SendButtonProps) {
   return (
-    <Button variant="primary rounded-pill">
+    <Button
+      variant="primary rounded-pill"
+      onClick={onClick}
+      disabled={disabled}
+    >
       <span>{'Send'}</span>
     </Button>
   )
 }
 
-function ButtonRow() {
+interface ButtonRowProps {
+  onPicture: () => void
+  onEmoji: () => void
+  onSchedule: () => void
+  onSend: () => void
+  sendDisabled: boolean
+}
+
+function ButtonRow({
+  onPicture,
+  onEmoji,
+  onSchedule,
+  onSend,
+  sendDisabled,
+}: ButtonRowProps) {
   return (
     <>
       <Col className="px-1" xs="auto">
-        <EntryOptionButton icon={faImage} />
+        <EntryOptionButton onClick={onPicture} icon={faImage} />
       </Col>
       <Col className="px-1" xs="auto">
-        <EntryOptionButton icon={pickRandomFace()} />
+        <EntryOptionButton onClick={onEmoji} icon={pickRandomFace()} />
       </Col>
       <Col className="px-1" xs="auto">
-        <EntryOptionButton icon={faCalendarCheck} />
+        <EntryOptionButton onClick={onSchedule} icon={faCalendarCheck} />
       </Col>
       <Col></Col>
       <Col className="p-0" xs="auto">
-        <SendButton />
+        <SendButton disabled={sendDisabled} onClick={onSend} />
       </Col>
     </>
   )
@@ -141,8 +164,14 @@ interface InputCardProps {
 }
 
 function InputCard({ node }: InputCardProps) {
-
   const [value, setValue] = useState<string | undefined>(undefined)
+
+  const sendEntry = useCallback(
+    () => SEND_ENTRY({ content: EntryContent.parse(value!) }),
+    [value],
+  )
+
+  const { execute } = useAsync(sendEntry, false)
 
   return (
     <>
@@ -150,13 +179,19 @@ function InputCard({ node }: InputCardProps) {
         <Avatar uri={node.avatar_url} />
       </Col>
       <Col>
-        <Row>
+        <Row className="mt-3 mb-2">
           <Col>
-            <Input value={value} onChange={setValue}/>
+            <Input value={value} onChange={setValue} />
           </Col>
         </Row>
-        <Row>
-          <ButtonRow />
+        <Row className="align-items-center">
+          <ButtonRow
+            onPicture={() => {}}
+            onEmoji={() => {}}
+            onSchedule={() => {}}
+            onSend={execute}
+            sendDisabled={!value}
+          />
         </Row>
       </Col>
     </>
