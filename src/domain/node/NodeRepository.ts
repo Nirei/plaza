@@ -5,6 +5,9 @@ export interface FindQuery {
   ids?: NodeReference.Type[]
 }
 
+/**
+ * Repository for node information
+ */
 export default interface NodeRepository {
   /**
    * Find nodes from your known nodes.
