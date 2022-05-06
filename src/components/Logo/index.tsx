@@ -1,7 +1,8 @@
-import { Image } from "react-bootstrap"
+import PlazaLogo from '../../logo.svg'
+import { Image } from 'react-bootstrap'
 
 function Logo() {
-    return <Image src="logo192.png" />
+  return <Image src={PlazaLogo} alt="Plaza logo" />
 }
 
 export default Logo
