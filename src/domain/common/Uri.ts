@@ -6,3 +6,5 @@ export function parse(input: string) {
   if (input.length === 0) throw new ValidationError('Uri cannot be blank')
   return input as Type
 }
+
+export * as Uri from './Uri'

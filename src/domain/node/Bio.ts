@@ -10,3 +10,5 @@ export type Type = string & {
 export function parse(input: string) {
   return parseBoundedLengthString(input, MIN_LENGTH, MAX_LENGTH) as Type
 }
+
+export * as Bio from './Bio'

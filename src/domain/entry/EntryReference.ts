@@ -20,3 +20,5 @@ export function parse({ node, date, hash }: Raw) {
     hash: Digest.parse(hash),
   } as Type
 }
+
+export * as EntryReference from './EntryReference'

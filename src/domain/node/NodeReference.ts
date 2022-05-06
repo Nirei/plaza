@@ -5,3 +5,5 @@ export type Type = PublicKey.Type & { readonly NodeReference: unique symbol }
 export function parse(input: string) {
   return PublicKey.parse(input) as Type
 }
+
+export * as NodeReference from "./NodeReference"
