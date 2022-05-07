@@ -7,19 +7,24 @@ import Node from '../../domain/node/Node'
 import * as NodeReference from '../../domain/node/NodeReference'
 import { Hyperdrive } from '../../lib/beaker'
 
-const BASE_PATH = 'blog'
+const BLOG_PATH = 'blog'
 const PROFILE_FILE_NAME = 'profile'
 const FOLLOW_FILE_PREFIX = 'follow'
 const LIKE_FILE_PREFIX = 'like'
 const ENTRY_FILE_PREFIX = 'entry'
+const INFO_FILE_NAME = 'source-info'
 
-const FOLLOW_FILE_QUERY = `/${BASE_PATH}/${FOLLOW_FILE_PREFIX}-*.yml`
-const LIKE_FILE_QUERY = `/${BASE_PATH}/${LIKE_FILE_PREFIX}-*.yml`
-const ENTRY_FILE_QUERY = `/${BASE_PATH}/${ENTRY_FILE_PREFIX}-*.yml`
+const FOLLOW_FILE_QUERY = `/${BLOG_PATH}/${FOLLOW_FILE_PREFIX}-*.yml`
+const LIKE_FILE_QUERY = `/${BLOG_PATH}/${LIKE_FILE_PREFIX}-*.yml`
+const ENTRY_FILE_QUERY = `/${BLOG_PATH}/${ENTRY_FILE_PREFIX}-*.yml`
+const INFO_FILE_PATH = `/${BLOG_PATH}/${INFO_FILE_NAME}.yml`
 
 const MAX_ROTATING_FILE_SIZE = 2 * 1024 * 1024
 
 const ENTRY_FILE_PATTERN = /\/?(?:.+\/)+entry-(-?\d+)\.yml/
+
+const ERROR_MISSING_SOURCE_INFO =
+  'Missing source info file. Plaza does not appear to have been installed in this Hyperdrive'
 
 const PARSE_NODE_REFS = (nodes: string[]) => nodes.map(NodeReference.parse)
 const PARSE_ENTRY_REFS = (entries: EntryReference.Raw[]) =>
@@ -42,6 +47,10 @@ interface EntryRawData {
   reblog?: EntryReference.Raw
 }
 
+interface NodeInfo {
+  version: number
+}
+
 /**
  * Default time in milliseconds before an operation times out
  */
@@ -53,20 +62,51 @@ export default class Client {
 
   static readonly LOCAL = NodeReference.parse(Client.host)
 
+  async createNode(from: NodeReference.Type) {
+    const origin = Client.hyperdriveApi.drive(from)
+
+    const destination = await Client.hyperdriveApi.createDrive({
+      title: 'Plaza',
+      description: 'Decentralized microblogging social network',
+      tags: 'social network microblogging',
+      prompt: true,
+    })
+
+    await this.copySourceFiles(origin, destination)
+    return NodeReference.parse(destination.url)
+  }
+
+  async updateNode(from: NodeReference.Type) {
+    const origin = Client.hyperdriveApi.drive(from)
+    const destination = Client.hyperdriveApi.drive(Client.LOCAL)
+    const sourceInfo = await this.sourceInfo(destination)
+    if (!sourceInfo)
+      // Is this a Plaza Hyperdrive?
+      throw Error(ERROR_MISSING_SOURCE_INFO)
+
+    const originInfo = await origin.getInfo()
+    if (sourceInfo.version && sourceInfo.version >= originInfo.version)
+      // No update required
+      return false
+    await this.copySourceFiles(origin, destination)
+    return true
+  }
+
   nodeInfo(node: NodeReference.Type) {
     const drive = Client.hyperdriveApi.drive(node)
     return drive.getInfo()
-  } 
+  }
 
   createEntry(entry: Entry) {
     const drive = Client.hyperdriveApi.drive(Client.LOCAL)
-    const content = YAML.dump(entry)
+    const rawData: EntryRawData = {
+      content: entry.content,
+      embed: entry.embed,
+      reblog: entry.reblog,
+      reply: entry.reply,
+    }
     const path = this.entryFilePath(entry.date.getTime())
-    return drive.writeFile(path, content, {
-      metadata: {},
-      encoding: 'utf8',
-      timeout: DEFAULT_OP_TIMEOUT,
-    })
+    return this.writeYaml(drive, path, rawData)
   }
 
   async resolveEntry(ref: EntryReference.Type) {
@@ -83,7 +123,7 @@ export default class Client {
     const drive = Client.hyperdriveApi.drive(id)
     const profileFile = await this.fetchFile(
       drive,
-      `/${BASE_PATH}/${PROFILE_FILE_NAME}.yml`,
+      `/${BLOG_PATH}/${PROFILE_FILE_NAME}.yml`,
     )
     const nodeData = this.parseYaml<ProfileRawData>(profileFile)
     if (nodeData === null) return null
@@ -114,6 +154,11 @@ export default class Client {
 
   likes(node: NodeReference.Type) {
     return this.fetchFiles(node, LIKE_FILE_QUERY, PARSE_ENTRY_REFS)
+  }
+
+  private async sourceInfo(drive: Hyperdrive.Hyperdrive) {
+    const infoFilePath = await this.fetchFile(drive, INFO_FILE_PATH)
+    return this.parseYaml<NodeInfo>(infoFilePath)
   }
 
   private async fetchFiles<Output, Content>(
@@ -152,7 +197,7 @@ export default class Client {
   }
 
   private entryFilePath(timestamp: number) {
-    return `/${BASE_PATH}/${ENTRY_FILE_PREFIX}-${timestamp}.yml`
+    return `/${BLOG_PATH}/${ENTRY_FILE_PREFIX}-${timestamp}.yml`
   }
 
   private async queryFiles(drive: Hyperdrive.Hyperdrive, fileQuery: string) {
@@ -201,5 +246,41 @@ export default class Client {
       node: node,
       date: date,
     })
+  }
+
+  private writeYaml<Content>(
+    drive: Hyperdrive.Hyperdrive,
+    path: string,
+    content: Content,
+  ) {
+    const file = YAML.dump(content)
+    return drive.writeFile(path, file, {
+      metadata: {},
+      encoding: 'utf8',
+      timeout: DEFAULT_OP_TIMEOUT,
+    })
+  }
+
+  private async copySourceFiles(
+    source: Hyperdrive.Hyperdrive,
+    destination: Hyperdrive.Hyperdrive,
+  ) {
+    const dirContent = await source.readdir('', {
+      includeStats: true,
+      timeout: DEFAULT_OP_TIMEOUT,
+    })
+
+    const filePromises = dirContent
+      // Avoid blog folder, which contains all profile info.
+      .filter(({ name, stat }) => stat.isFile() || name !== BLOG_PATH)
+      .map(({ name }) =>
+        Client.hyperdriveApi.copy(
+          `${source.url}/${name}`,
+          `${destination.url}/${name}`,
+          { timeout: DEFAULT_OP_TIMEOUT },
+        ),
+      )
+
+    return Promise.all(filePromises)
   }
 }

@@ -49,18 +49,28 @@ namespace Hyperdrive {
       opts?: EncodedWriteFileOptions,
     ): Promise<void>
     mkdir(url: string, opts?: MkdirOptions): Promise<void>
+    symlink(target: string, url: string, opts?: SymlinkOptions): Promise<void>
+    mount(
+      url: string,
+      mount: string | Hyperdrive | { key: string; version: number | string },
+      opts?: MountOptions,
+    ): Promise<void>
+    copy(src: string, dst: string, opts?: CopyOptions): Promise<void>
   }
 
   export interface Hyperdrive {
+    url: string
+    version: string | number | null
     forkDrive(opts?: ForkDriveOptions): Promise<Hyperdrive>
     getInfo(opts?: GetInfoOptions): Promise<Info>
     stat(opts?: StatOptions): Promise<Stat>
     readFile(url: string, opts?: BinaryReadFileOptions): Promise<Uint8Array>
     readFile(url: string, opts?: EncodedReadFileOptions): Promise<string>
+    readdir(url?: string, opts?: ReadDirOpts): Promise<string[]>
     readdir(
-      url: string,
-      opts?: ReadDirOpts,
-    ): Promise<(string | { name: string; stat: Stat })[]>
+      url?: string,
+      opts?: ReadDirOptsIncludeStats,
+    ): Promise<{ name: string; stat: Stat }[]>
     query(query: Query): Promise<Answer[]>
     diff(
       url: string,
@@ -80,6 +90,17 @@ namespace Hyperdrive {
       opts?: EncodedWriteFileOptions,
     ): Promise<void>
     mkdir(url: string, opts?: MkdirOptions): Promise<void>
+    symlink(target: string, url: string, opts?: SymlinkOptions): Promise<void>
+    mount(
+      url: string,
+      mount: string | Hyperdrive | { key: string; version: number | string },
+      opts?: MountOptions,
+    ): Promise<void>
+    copy(src: string, dst: string, opts?: CopyOptions): Promise<void>
+  }
+
+  interface TimeoutOptions {
+    timeout?: number
   }
 
   export interface CreateDriveOptions {
@@ -97,9 +118,7 @@ namespace Hyperdrive {
     prompt: boolean
   }
 
-  export interface GetInfoOptions {
-    timeout: number
-  }
+  export interface GetInfoOptions extends TimeoutOptions {}
 
   export interface Info {
     key: string
@@ -110,9 +129,8 @@ namespace Hyperdrive {
     description: string
   }
 
-  export interface StatOptions {
+  export interface StatOptions extends TimeoutOptions {
     lstat: boolean
-    timeout: number
   }
 
   export interface Stat {
@@ -127,7 +145,7 @@ namespace Hyperdrive {
     linkname: string
   }
 
-  interface ReadFileOptions {
+  interface ReadFileOptions extends TimeoutOptions {
     encoding: FileEncoding
     timeout: number
   }
@@ -140,13 +158,17 @@ namespace Hyperdrive {
     encoding: Exclude<FileEncoding, 'binary'>
   }
 
-  export interface ReadDirOpts {
-    includeStats: boolean
-    recursive: boolean
-    timeout: number
+  export interface ReadDirOpts extends TimeoutOptions {
+    includeStats?: false
+    recursive?: boolean
   }
 
-  export interface Query {
+  export interface ReadDirOptsIncludeStats extends TimeoutOptions {
+    includeStats: true
+    recursive?: boolean
+  }
+
+  export interface Query extends TimeoutOptions {
     drive?: string | string[]
     path: string | string[]
     type?: EntryType
@@ -156,7 +178,6 @@ namespace Hyperdrive {
     reverse?: boolean
     limit?: number
     offset?: number
-    timeout?: number
   }
 
   export interface Answer {
@@ -173,9 +194,7 @@ namespace Hyperdrive {
     }
   }
 
-  export interface DiffOptions {
-    timeout: number
-  }
+  export interface DiffOptions extends TimeoutOptions {}
 
   export interface Diff {
     type: DiffType
@@ -188,13 +207,10 @@ namespace Hyperdrive {
     description: string
   }
 
-  export interface ConfigureOptions {
-    timeout: number
-  }
+  export interface ConfigureOptions extends TimeoutOptions {}
 
-  interface WriteFileOptions {
+  interface WriteFileOptions extends TimeoutOptions {
     metadata: { [key: string]: string }
-    timeout: number
   }
 
   export interface BinaryWriteFileOptions extends WriteFileOptions {
@@ -205,9 +221,10 @@ namespace Hyperdrive {
     encoding: Exclude<FileEncoding, 'binary'>
   }
 
-  export interface MkdirOptions {
-    timeout: number
-  }
+  export interface MkdirOptions extends TimeoutOptions {}
+  export interface SymlinkOptions extends TimeoutOptions {}
+  export interface MountOptions extends TimeoutOptions {}
+  export interface CopyOptions extends TimeoutOptions {}
 
   export type EntryType = 'file' | 'directory' | 'mount'
   export type QuerySort = 'name' | 'ctime' | 'mtime'
