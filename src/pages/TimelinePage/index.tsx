@@ -3,7 +3,7 @@ import NewEntryInput from '../../components/NewEntryInput'
 import Page from '../../components/Page'
 import Timeline from '../../components/Timeline'
 import TimelineHeader from '../../components/TimelineHeader'
-import useAsync from '../../hooks/useAsync'
+import { useAsync } from '../../hooks/useAsync'
 import { useEntries } from '../../hooks/useEntries'
 
 function Content() {

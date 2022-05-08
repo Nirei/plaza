@@ -1,13 +1,14 @@
 import { useCallback } from 'react'
 import { Spinner } from 'react-bootstrap'
-import useAsync from './hooks/useAsync'
+import Autoupdater from './components/Autoupdater'
+import { useAsync } from './hooks/useAsync'
 import { useNodes } from './hooks/useNodes'
 import ExternalProfilePage from './pages/ExternalProfilePage'
 import InstallationWizardPage from './pages/InstallationWizardPage'
 import LandingPage from './pages/LandingPage'
 import TimelinePage from './pages/TimelinePage'
 
-function App() {
+const App = () => {
   const { isOwnNode, isInstalled } = useNodes()
   const getNodeStatus = useCallback(
     () => Promise.all([isOwnNode(), isInstalled()]),
@@ -22,9 +23,18 @@ function App() {
 
   if (!owned && installed) return <ExternalProfilePage />
   if (!owned && !installed) return <LandingPage />
-  if (!installed) return <InstallationWizardPage />
 
-  return <TimelinePage />
+  const PageOwned = () => {
+    if (!installed) return <InstallationWizardPage />
+    return <TimelinePage />
+  }
+
+  return (
+    <>
+      <Autoupdater />
+      <PageOwned />
+    </>
+  )
 }
 
 export default App

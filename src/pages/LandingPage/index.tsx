@@ -1,9 +1,29 @@
+import { useCallback } from 'react'
+import { Spinner } from 'react-bootstrap'
 import { Button } from 'react-bootstrap/lib/InputGroup'
 import Page from '../../components/Page'
-import { useNodes } from '../../hooks/useNodes'
+import { toUri } from '../../domain/node/NodeReference'
+import { useAsync } from '../../hooks/useAsync'
+import { useSources } from '../../hooks/useSources'
 
-const JoinButton = () => {
-  return <Button onClick={() => {}}/>
+const Join = () => {
+  const { create } = useSources()
+  const creationCallback = useCallback(async () => {
+    const node = await create()
+    window.location.assign(toUri(node))
+  }, [create])
+  const { error, loading, execute } = useAsync(creationCallback, false)
+
+  if (loading)
+    return (
+      <>
+        <Spinner animation="grow" variant="primary" />
+        <span>Setting up your node...</span>
+      </>
+    )
+
+  if (error) return <span>Set up failed: {error.message}</span>
+  return <Button onClick={execute}>Join!</Button>
 }
 
 const Content = () => {
@@ -21,7 +41,7 @@ const Content = () => {
       </p>
       <p>You decide what you show and you decide what you see.</p>
       <hr />
-      <JoinButton />
+      <Join />
     </>
   )
 }

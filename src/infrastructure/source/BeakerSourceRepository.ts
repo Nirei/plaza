@@ -1,7 +1,7 @@
 import SourceRepository, { ORIGIN } from "../../domain/source/SourceRepository";
 import Client from "../beaker/Client";
 
-export default class BeakerSourceRepository implements SourceRepository {
+export class BeakerSourceRepository implements SourceRepository {
   private readonly client = new Client()
 
   create() {

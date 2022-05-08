@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-export default function useAsync<Output>(
+export function useAsync<Output>(
   callback: () => Promise<Output>,
   immediate: boolean = true,
 ) {
