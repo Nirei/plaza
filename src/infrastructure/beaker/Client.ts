@@ -64,6 +64,7 @@ export default class Client {
 
   async createNode(from: NodeReference.Type) {
     const origin = Client.hyperdriveApi.drive(from)
+    const originInfo = await origin.getInfo()
 
     const destination = await Client.hyperdriveApi.createDrive({
       title: 'Plaza',
@@ -73,22 +74,25 @@ export default class Client {
     })
 
     await this.copySourceFiles(origin, destination)
+    this.writeVersion(destination, originInfo.version)
     return NodeReference.parse(destination.url)
   }
 
   async updateNode(from: NodeReference.Type) {
     const origin = Client.hyperdriveApi.drive(from)
     const destination = Client.hyperdriveApi.drive(Client.LOCAL)
-    const sourceInfo = await this.sourceInfo(destination)
-    if (!sourceInfo)
-      // Is this a Plaza Hyperdrive?
+    const sourceVersion = await this.readVersion(destination)
+    if (!sourceVersion)
+      // Where's our version file?
       throw Error(ERROR_MISSING_SOURCE_INFO)
 
     const originInfo = await origin.getInfo()
-    if (sourceInfo.version && sourceInfo.version >= originInfo.version)
+    if (sourceVersion.version && sourceVersion.version >= originInfo.version)
       // No update required
       return false
+    
     await this.copySourceFiles(origin, destination)
+    this.writeVersion(destination, originInfo.version)
     return true
   }
 
@@ -156,9 +160,14 @@ export default class Client {
     return this.fetchFiles(node, LIKE_FILE_QUERY, PARSE_ENTRY_REFS)
   }
 
-  private async sourceInfo(drive: Hyperdrive.Hyperdrive) {
+  private async readVersion(drive: Hyperdrive.Hyperdrive) {
     const infoFilePath = await this.fetchFile(drive, INFO_FILE_PATH)
     return this.parseYaml<NodeInfo>(infoFilePath)
+  }
+
+  private async writeVersion(drive: Hyperdrive.Hyperdrive, version: number) {
+    const fileContent = { version }
+    this.writeYaml(drive, INFO_FILE_PATH, fileContent)
   }
 
   private async fetchFiles<Output, Content>(

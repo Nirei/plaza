@@ -1,5 +1,5 @@
-import SourceRepository, { ORIGIN } from "../../domain/source/SourceRepository";
-import Client from "../beaker/Client";
+import SourceRepository, { ORIGIN } from '../../domain/source/SourceRepository'
+import Client from '../beaker/Client'
 
 export class BeakerSourceRepository implements SourceRepository {
   private readonly client = new Client()
@@ -7,8 +7,10 @@ export class BeakerSourceRepository implements SourceRepository {
   create() {
     return this.client.createNode(ORIGIN)
   }
-  update(): never {
-    // TODO: Me!
-    throw new Error('Method not implemented.')
+  async update() {
+    // Never try to update origin
+    if (Client.LOCAL === ORIGIN) return false
+    
+    return this.client.updateNode(ORIGIN)
   }
 }

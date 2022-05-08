@@ -1,6 +1,5 @@
 import { useCallback } from 'react'
-import { Spinner } from 'react-bootstrap'
-import { Button } from 'react-bootstrap/lib/InputGroup'
+import { Button, Spinner } from 'react-bootstrap'
 import Page from '../../components/Page'
 import { toUri } from '../../domain/node/NodeReference'
 import { useAsync } from '../../hooks/useAsync'
