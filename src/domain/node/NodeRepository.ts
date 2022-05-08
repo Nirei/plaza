@@ -23,14 +23,15 @@ export default interface NodeRepository {
    * Get the list of node IDs that a certain known node follows
    * @param id the id of the target node
    */
-  follows(
-    id: NodeReference.Type,
-    options: { page: number },
-  ): Promise<NodeReference.Type[]>
+  follows(id: NodeReference.Type): Promise<NodeReference.Type[]>
   /**
    * @returns true if the local node is writable to the user, false otherwise.
    */
   isOwnNode(): Promise<boolean>
+  /**
+   * @returns true if the local node has been initialized with a profile
+   */
+  isInstalled(): Promise<boolean>
   /**
    * Returns the local node.
    */

@@ -13,9 +13,7 @@ function Page({ children }: Props) {
         <Col xs={3}>
           <SideMenu />
         </Col>
-        <Col xs={6}>
-          {children}
-        </Col>
+        <Col xs={6}>{children}</Col>
         <Col></Col>
       </Row>
     </Container>

@@ -1,6 +1,6 @@
-import { Spinner, Stack } from 'react-bootstrap'
-import NewEntryInput from '../../components/NewEntryInput'
+import { Row, Spinner, Stack } from 'react-bootstrap'
 import Page from '../../components/Page'
+import ProfileHeader from '../../components/ProfileHeader'
 import Timeline from '../../components/Timeline'
 import TimelineHeader from '../../components/TimelineHeader'
 import useAsync from '../../hooks/useAsync'
@@ -22,15 +22,20 @@ function Content() {
   return (
     <Stack className="border border-light" direction="vertical">
       <TimelineHeader>
-        <span className="fw-bold fs-5">Home</span>
+        <Row>
+          <span>PROFILE NAME</span>
+        </Row>
+        <Row>
+          <span>7001 entries</span>
+        </Row>
       </TimelineHeader>
-      <NewEntryInput />
+      <ProfileHeader />
       <Timeline entries={result!} />
     </Stack>
   )
 }
 
-function TimelinePage() {
+const ExternalProfilePage = () => {
   return (
     <Page>
       <Content />
@@ -38,4 +43,4 @@ function TimelinePage() {
   )
 }
 
-export default TimelinePage
+export default ExternalProfilePage
