@@ -1,12 +1,9 @@
 import { useCallback } from 'react'
+import { Routes, useLocation } from 'react-awesome-router'
 import { Spinner } from 'react-bootstrap'
 import Autoupdater from './components/Autoupdater'
 import { useAsync } from './hooks/useAsync'
 import { useNodes } from './hooks/useNodes'
-import ExternalProfilePage from './pages/ExternalProfilePage'
-import InstallationWizardPage from './pages/InstallationWizardPage'
-import LandingPage from './pages/LandingPage'
-import TimelinePage from './pages/TimelinePage'
 
 const App = () => {
   const { isOwnNode, isInstalled } = useNodes()
@@ -16,23 +13,19 @@ const App = () => {
   )
   const { done, error, result } = useAsync(getNodeStatus)
 
+  const { setContext } = useLocation()
+
   if (error) return <h3>FIX ME!</h3>
   if (!done) return <Spinner animation="grow" variant="primary" />
 
   const [owned, installed] = result!
 
-  if (!owned && installed) return <ExternalProfilePage />
-  if (!owned && !installed) return <LandingPage />
-
-  const PageOwned = () => {
-    if (!installed) return <InstallationWizardPage />
-    return <TimelinePage />
-  }
+  setContext({ owned, installed })
 
   return (
     <>
-      <Autoupdater />
-      <PageOwned />
+      {installed && <Autoupdater />}
+      <Routes />
     </>
   )
 }
